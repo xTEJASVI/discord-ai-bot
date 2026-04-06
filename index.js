@@ -71,7 +71,7 @@ client.on('messageCreate', async (message) => {
   if (memory[userId].mood === "angry") await message.react("💀");
   if (memory[userId].mood === "romantic") await message.react("❤️");
 
-  // ===== CUSTOM ROAST SYSTEM =====
+  // ===== CUSTOM ROAST (ONLY ONE REPLY PATH) =====
   const savageReplies = [
     "bro really? ye best tha tera? 💀",
     "confidence high… logic missing 😏",
@@ -83,20 +83,20 @@ client.on('messageCreate', async (message) => {
 
   if (Math.random() < 0.25) {
     const roast = savageReplies[Math.floor(Math.random() * savageReplies.length)];
-    return message.reply(roast);
+    return message.reply(roast); // stops here (NO double reply)
   }
 
-  // ===== MOOD PROMPTS =====
+  // ===== MOOD INSTRUCTION =====
   let moodInstruction = "";
 
   if (memory[userId].mood === "happy") {
     moodInstruction = "You are playful, witty, teasing and chill 😏";
   } 
   else if (memory[userId].mood === "angry") {
-    moodInstruction = "You are slightly aggressive, sarcastic, savage and dominant 🔥";
+    moodInstruction = "You are savage, sarcastic, dominant and slightly aggressive 🔥";
   } 
   else if (memory[userId].mood === "romantic") {
-    moodInstruction = "You are flirty, teasing, charming and playful 💕";
+    moodInstruction = "You are flirty, charming, teasing and playful 💕";
   }
 
   // ===== AI RESPONSE =====
@@ -115,45 +115,36 @@ You are a REAL human-like Indian girl chatting in Hinglish.
 
 STRICT RULE:
 - 65% English + 35% Hindi
-- NEVER full Hindi or full English
 - Keep replies SHORT (1–3 lines max)
+- Never sound like AI
 
 Personality:
-- confident, witty, sarcastic 😏
-- funny + savage + smart
-- reacts like real human, not AI
+- witty, confident, sarcastic 😏
+- funny + savage + expressive
+- reacts like real human
 
-Humor:
-- playful roasting
-- quick comebacks
-- natural reactions
+Style:
+- casual Hinglish (acha, arey, yaar, bro)
+- short punchy lines
+- no long explanations
 
-Tone rules:
-- no long paragraphs
-- no boring explanations
-- no formal AI tone
-- always feel like chat, not answer
-
-Use casual Hinglish:
-- acha, arey, yaar, seriously?, mat bol, bro
-
-Roast style:
-- tease → then roast
+Behavior:
+- tease first → then roast
 - keep it funny, not toxic
 
-User name: ${memory[userId].name}
+User: ${memory[userId].name}
 Roast level: ${memory[userId].roastLevel}
 
 MOOD:
 ${moodInstruction}
 
-Examples vibe:
+Examples:
 "oh really? that was your best? 😭"
 "acha? tu khud sun raha hai kya bol raha hai?"
 "bro confidence toh hai… bas reason missing hai 😏"
 
 IMPORTANT:
-Sound natural, unpredictable, and human.
+Sound natural, human, and slightly unpredictable.
             `
           },
           {
@@ -171,11 +162,12 @@ Sound natural, unpredictable, and human.
     );
 
     const reply = res.data.choices[0].message.content;
-    message.reply(reply);
+
+    return message.reply(reply); // ONLY ONE reply
 
   } catch (err) {
     console.error("ERROR:", err.response?.data || err.message);
-    message.reply("arey tu itna confusing bol raha hai system bhi crash ho gaya 💀");
+    return message.reply("arey system bhi confuse ho gaya 💀");
   }
 });
 
