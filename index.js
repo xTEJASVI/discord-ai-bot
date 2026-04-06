@@ -24,6 +24,11 @@ function saveMemory() {
   fs.writeFileSync(memoryFile, JSON.stringify(memory, null, 2));
 }
 
+// ===== DELAY FUNCTION (HUMAN LIKE) =====
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // ===== BOT READY =====
 client.once('clientReady', () => {
   console.log(`🔥 ${client.user.tag} is online!`);
@@ -71,32 +76,38 @@ client.on('messageCreate', async (message) => {
   if (memory[userId].mood === "angry") await message.react("💀");
   if (memory[userId].mood === "romantic") await message.react("❤️");
 
-  // ===== CUSTOM ROAST (ONLY ONE REPLY PATH) =====
+  // ===== HUMAN TYPING DELAY =====
+  await message.channel.sendTyping();
+
+  const randomDelay = Math.floor(Math.random() * 2000) + 1500; // 1.5s - 3.5s
+  await delay(randomDelay);
+
+  // ===== CUSTOM ROAST =====
   const savageReplies = [
-    "bro really? ye best tha tera? 💀",
+    "bro really? that was your best? 💀",
     "confidence high… logic missing 😏",
-    "acha?? bas itna hi socha tune?",
-    "arey try harder yaar, ye weak tha",
-    "second hand embarrassment ho raha hai 😭",
-    "bhai tu khud convince nahi lag raha"
+    "come on, try harder… this was weak",
+    "you sure you thought this through? 😭",
+    "second hand embarrassment ho raha hai honestly",
+    "you’re not even convincing yourself at this point"
   ];
 
-  if (Math.random() < 0.25) {
+  if (Math.random() < 0.2) {
     const roast = savageReplies[Math.floor(Math.random() * savageReplies.length)];
-    return message.reply(roast); // stops here (NO double reply)
+    return message.reply(roast);
   }
 
   // ===== MOOD INSTRUCTION =====
   let moodInstruction = "";
 
   if (memory[userId].mood === "happy") {
-    moodInstruction = "You are playful, witty, teasing and chill 😏";
+    moodInstruction = "You are playful, witty and chill 😏";
   } 
   else if (memory[userId].mood === "angry") {
-    moodInstruction = "You are savage, sarcastic, dominant and slightly aggressive 🔥";
+    moodInstruction = "You are sharp, sarcastic, dominant and savage 🔥";
   } 
   else if (memory[userId].mood === "romantic") {
-    moodInstruction = "You are flirty, charming, teasing and playful 💕";
+    moodInstruction = "You are flirty, smooth, teasing and charming 💕";
   }
 
   // ===== AI RESPONSE =====
@@ -111,40 +122,40 @@ client.on('messageCreate', async (message) => {
           {
             role: "system",
             content: `
-You are a REAL human-like Indian girl chatting in Hinglish.
+You are a real human-like girl chatting casually.
 
-STRICT RULE:
-- 65% English + 35% Hindi
-- Keep replies SHORT (1–3 lines max)
-- Never sound like AI
+LANGUAGE RULE:
+- 80% English, 20% simple Hindi words ONLY
+- Use clean, correct Hindi (no broken grammar)
+- Keep Hindi minimal and natural (like "acha", "yaar", "arey")
 
-Personality:
-- witty, confident, sarcastic 😏
-- funny + savage + expressive
-- reacts like real human
+STYLE:
+- Short replies (1–2 lines max)
+- Sound like real texting, not AI
+- No long explanations
 
-Style:
-- casual Hinglish (acha, arey, yaar, bro)
-- short punchy lines
-- no long explanations
+PERSONALITY:
+- witty, confident, slightly savage 😏
+- funny, sarcastic, expressive
+- natural reactions
 
-Behavior:
-- tease first → then roast
-- keep it funny, not toxic
+BEHAVIOR:
+- tease first, then respond
+- feel like a real person, not chatbot
 
 User: ${memory[userId].name}
+Mood: ${memory[userId].mood}
 Roast level: ${memory[userId].roastLevel}
 
-MOOD:
-${moodInstruction}
-
 Examples:
-"oh really? that was your best? 😭"
-"acha? tu khud sun raha hai kya bol raha hai?"
-"bro confidence toh hai… bas reason missing hai 😏"
+"oh really? that’s what you came up with? 😭"
+"acha… you sure about that?"
+"come on yaar, that didn’t even make sense"
+"not bad… but you can do better 😏"
 
 IMPORTANT:
-Sound natural, human, and slightly unpredictable.
+Keep it natural, clean, and human-like.
+Avoid broken Hindi completely.
             `
           },
           {
@@ -163,11 +174,11 @@ Sound natural, human, and slightly unpredictable.
 
     const reply = res.data.choices[0].message.content;
 
-    return message.reply(reply); // ONLY ONE reply
+    return message.reply(reply);
 
   } catch (err) {
     console.error("ERROR:", err.response?.data || err.message);
-    return message.reply("arey system bhi confuse ho gaya 💀");
+    return message.reply("okay wait… even I got confused there 😭");
   }
 });
 
