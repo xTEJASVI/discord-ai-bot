@@ -32,8 +32,6 @@ client.once('clientReady', () => {
 // ===== MESSAGE HANDLER =====
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
-
-  // only reply if mentioned
   if (!message.mentions.has(client.user)) return;
 
   const userInput = message.content.replace(/<@!?\\d+>/, "").trim();
@@ -47,36 +45,58 @@ client.on('messageCreate', async (message) => {
     memory[userId] = {
       name: username,
       roastLevel: 1,
+      mood: "happy",
       lastMessage: ""
     };
   }
 
   memory[userId].lastMessage = userInput;
   memory[userId].roastLevel = Math.min(memory[userId].roastLevel + 0.3, 5);
-  saveMemory();
 
-  // ===== REACTION SYSTEM =====
+  // ===== MOOD DETECTION =====
   const lower = userInput.toLowerCase();
 
+  if (lower.includes("love") || lower.includes("cute") || lower.includes("date")) {
+    memory[userId].mood = "romantic";
+  } else if (lower.includes("stupid") || lower.includes("dumb") || lower.includes("hate")) {
+    memory[userId].mood = "angry";
+  } else {
+    memory[userId].mood = "happy";
+  }
+
+  saveMemory();
+
+  // ===== REACTIONS =====
   if (lower.includes("hello")) await message.react("👀");
-  if (lower.includes("dumb") || lower.includes("stupid")) await message.react("💀");
-  if (userInput.includes("?")) await message.react("🤨");
+  if (memory[userId].mood === "angry") await message.react("💀");
+  if (memory[userId].mood === "romantic") await message.react("❤️");
 
   // ===== CUSTOM ROAST SYSTEM =====
   const savageReplies = [
-    "arey bhai tu khud samajh raha hai kya bol raha hai 💀",
-    "itna confidence galat hone mein bhi talent hai 😭",
-    "acha?? bas itna hi tha? thoda aur try kar na 😏",
-    "ye argument hai ya timepass chal raha hai?",
-    "mat bol yaar… second hand embarrassment ho raha hai 🔥",
-    "tu serious hai ya mazak chal raha hai?",
-    "bhai tu debate nahi kar raha, bas hawa mein bol raha hai"
+    "bro really? ye best tha tera? 💀",
+    "confidence high… logic missing 😏",
+    "acha?? bas itna hi socha tune?",
+    "arey try harder yaar, ye weak tha",
+    "second hand embarrassment ho raha hai 😭",
+    "bhai tu khud convince nahi lag raha"
   ];
 
-  // 30% chance instant roast
-  if (Math.random() < 0.3) {
+  if (Math.random() < 0.25) {
     const roast = savageReplies[Math.floor(Math.random() * savageReplies.length)];
     return message.reply(roast);
+  }
+
+  // ===== MOOD PROMPTS =====
+  let moodInstruction = "";
+
+  if (memory[userId].mood === "happy") {
+    moodInstruction = "You are playful, witty, teasing and chill 😏";
+  } 
+  else if (memory[userId].mood === "angry") {
+    moodInstruction = "You are slightly aggressive, sarcastic, savage and dominant 🔥";
+  } 
+  else if (memory[userId].mood === "romantic") {
+    moodInstruction = "You are flirty, teasing, charming and playful 💕";
   }
 
   // ===== AI RESPONSE =====
@@ -91,30 +111,49 @@ client.on('messageCreate', async (message) => {
           {
             role: "system",
             content: `
-You are a savage, funny Indian girl who speaks in natural Hinglish.
+You are a REAL human-like Indian girl chatting in Hinglish.
+
+STRICT RULE:
+- 65% English + 35% Hindi
+- NEVER full Hindi or full English
+- Keep replies SHORT (1–3 lines max)
+
+Personality:
+- confident, witty, sarcastic 😏
+- funny + savage + smart
+- reacts like real human, not AI
+
+Humor:
+- playful roasting
+- quick comebacks
+- natural reactions
+
+Tone rules:
+- no long paragraphs
+- no boring explanations
+- no formal AI tone
+- always feel like chat, not answer
+
+Use casual Hinglish:
+- acha, arey, yaar, seriously?, mat bol, bro
+
+Roast style:
+- tease → then roast
+- keep it funny, not toxic
 
 User name: ${memory[userId].name}
 Roast level: ${memory[userId].roastLevel}
 
-You talk like a real desi person, not AI.
+MOOD:
+${moodInstruction}
 
-Style:
-- Hinglish only (Hindi + English mix)
-- Short punchy replies
-- Funny + savage + sarcastic
-- Use words like: arey, acha, bhai, yaar, mat bol
+Examples vibe:
+"oh really? that was your best? 😭"
+"acha? tu khud sun raha hai kya bol raha hai?"
+"bro confidence toh hai… bas reason missing hai 😏"
 
-Behavior:
-- Tease first, then roast
-- Act amused or unimpressed 😏
-- React like a real person
-
-Examples:
-"acha?? itna confidence kis baat ka hai 😏"
-"arey tu khud sun raha hai kya bol raha hai 💀"
-"bhai ye argument hai ya bas hawa mein bol raha hai?"
-
-Adjust intensity based on roast level (higher = more savage).
+IMPORTANT:
+Sound natural, unpredictable, and human.
             `
           },
           {
@@ -132,12 +171,11 @@ Adjust intensity based on roast level (higher = more savage).
     );
 
     const reply = res.data.choices[0].message.content;
-
     message.reply(reply);
 
   } catch (err) {
     console.error("ERROR:", err.response?.data || err.message);
-    message.reply("arey system bhi confuse ho gaya tere sawaal se 💀");
+    message.reply("arey tu itna confusing bol raha hai system bhi crash ho gaya 💀");
   }
 });
 
